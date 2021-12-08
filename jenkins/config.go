@@ -2,6 +2,7 @@ package jenkins
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -15,6 +16,9 @@ type jenkinsClient interface {
 	DeleteJobInFolder(ctx context.Context, name string, parentIDs ...string) (bool, error)
 	GetJob(ctx context.Context, id string, parentIDs ...string) (*jenkins.Job, error)
 	GetFolder(ctx context.Context, id string, parents ...string) (*jenkins.Folder, error)
+	RegisterNode(ctx context.Context, name string, numExecutors int, description, remoteFS, credentials string, labels []string, ip string, port int) (*jenkins.Node, error)
+	GetNode(ctx context.Context, name string) (*jenkins.Node, error)
+	DeleteNode(ctx context.Context, name string) (bool, error)
 }
 
 // jenkinsAdapter wraps the Jenkins client, enabling additional functionality
@@ -51,4 +55,27 @@ func (j *jenkinsAdapter) Credentials() *jenkins.CredentialsManager {
 // and cannot take a canonical job ID without mishandling it.
 func (j *jenkinsAdapter) DeleteJobInFolder(ctx context.Context, name string, parentIDs ...string) (bool, error) {
 	return j.DeleteJob(ctx, strings.Join(append(parentIDs, name), "/job/"))
+}
+
+func (j *jenkinsAdapter) RegisterNode(ctx context.Context, name string, numExecutors int, description, remoteFS, credentials string, labels []string, ip string, port int) (*jenkins.Node, error) {
+	return j.CreateNode(
+		ctx,
+		name,
+		numExecutors,
+		description,
+		remoteFS,
+		strings.Join(labels, ", "),
+		map[string]string{
+			"method":                         "SSHLauncher",
+			"host":                           ip,
+			"sshHostKeyVerificationStrategy": jenkins.NonVerifyingKey,
+			"javaPath":                       "/usr/bin/java",
+			"credentialsId":                  credentials,
+			"port":                           fmt.Sprintf("%d", port),
+			"mode":                           "EXCLUSIVE",
+		},
+		map[string]string{
+			"mode": "EXCLUSIVE",
+		},
+	)
 }

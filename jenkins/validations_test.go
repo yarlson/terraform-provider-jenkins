@@ -54,3 +54,23 @@ func TestValidateCredentialScope(t *testing.T) {
 		t.Errorf("Error, negative validation failed for input: %s", input)
 	}
 }
+
+func TestValidateNodeIP(t *testing.T) {
+	input, ctyPath := "10.12.122.139", make(cty.Path, 0)
+	actual := validateNodeIP(input, ctyPath)
+	if actual.HasError() {
+		t.Errorf("Error, validation failed for input: %s", input)
+	}
+
+	input = "10.12.122"
+	actual = validateNodeIP(input, ctyPath)
+	if !actual.HasError() {
+		t.Errorf("Error, validation failed for input: %s", input)
+	}
+
+	input = "WRONG_IP"
+	actual = validateNodeIP(input, ctyPath)
+	if !actual.HasError() {
+		t.Errorf("Error, validation failed for input: %s", input)
+	}
+}

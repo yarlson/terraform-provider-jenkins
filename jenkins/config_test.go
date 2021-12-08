@@ -13,6 +13,9 @@ type mockJenkinsClient struct {
 	mockDeleteJobInFolder func(ctx context.Context, name string, parentIDs ...string) (bool, error)
 	mockGetJob            func(ctx context.Context, id string, parentIDs ...string) (*jenkins.Job, error)
 	mockGetFolder         func(ctx context.Context, id string, parentIDs ...string) (*jenkins.Folder, error)
+	mockRegisterNode      func(ctx context.Context, name string, numExecutors int, description, remoteFS, credentials string, labels []string, ip string, port int) (*jenkins.Node, error)
+	mockGetNode           func(ctx context.Context, name string) (*jenkins.Node, error)
+	mockDeleteNode        func(ctx context.Context, name string) (bool, error)
 }
 
 func (m *mockJenkinsClient) CreateJobInFolder(ctx context.Context, config string, jobName string, parentIDs ...string) (*jenkins.Job, error) {
@@ -33,6 +36,18 @@ func (m *mockJenkinsClient) GetJob(ctx context.Context, id string, parentIDs ...
 
 func (m *mockJenkinsClient) GetFolder(ctx context.Context, id string, parentIDs ...string) (*jenkins.Folder, error) {
 	return m.mockGetFolder(ctx, id, parentIDs...)
+}
+
+func (m *mockJenkinsClient) RegisterNode(ctx context.Context, name string, numExecutors int, description, remoteFS, credentials string, labels []string, ip string, port int) (*jenkins.Node, error) {
+	return m.mockRegisterNode(ctx, name, numExecutors, description, remoteFS, credentials, labels, ip, port)
+}
+
+func (m *mockJenkinsClient) GetNode(ctx context.Context, name string) (*jenkins.Node, error) {
+	return m.mockGetNode(ctx, name)
+}
+
+func (m *mockJenkinsClient) DeleteNode(ctx context.Context, name string) (bool, error) {
+	return m.mockDeleteNode(ctx, name)
 }
 
 func TestNewJenkinsClient(t *testing.T) {
